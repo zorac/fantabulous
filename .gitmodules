@@ -1,0 +1,15 @@
+[submodule "dotnet"]
+	path = dotnet
+	url = https://github.com/zorac/fantabulous-dotnet.git
+[submodule "react"]
+	path = react
+	url = https://github.com/zorac/fantabulous-react.git
+[submodule "mysql"]
+	path = mysql
+	url = https://github.com/zorac/fantabulous-mysql.git
+[submodule "redis"]
+	path = redis
+	url = https://github.com/zorac/fantabulous-redis.git
+[submodule "proxy"]
+	path = proxy
+	url = https://github.com/zorac/fantabulous-proxy.git

@@ -1,0 +1,25 @@
+version: "3"
+services:
+  mysql:
+    image: fantabulous/mysql:latest
+    build: mysql
+  redis-sessions:
+    image: fantabulous/redis:cache
+    build:
+      context: redis
+      dockerfile: Dockerfile.Cache
+  user-api:
+    image: fantabulous/user-api:latest
+    build:
+      context: dotnet
+      dockerfile: Dockerfile.User
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+  ui:
+    image: fantabulous/react-ui:latest
+    build: react
+  proxy:
+    image: fantabulous/proxy:latest
+    build: proxy
+    ports:
+      - "80:80"

@@ -1,0 +1,14 @@
+version: "3"
+services:
+  mysql:
+    build: mysql
+    image: fantabulous/mysql:latest
+    ports:
+      - "3306:3306"
+  redis-sessions:
+    build:
+      context: redis
+      dockerfile: Dockerfile.Cache
+    image: fantabulous/redis:cache
+    ports:
+      - "6379:6379"
