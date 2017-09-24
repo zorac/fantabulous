@@ -12,3 +12,7 @@ services:
     image: fantabulous/redis:cache
     ports:
       - "6379:6379"
+  redis-users:
+    image: fantabulous/redis:cache
+    ports:
+      - "6380:6379"

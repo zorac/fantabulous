@@ -8,6 +8,8 @@ services:
     build:
       context: redis
       dockerfile: Dockerfile.Cache
+  redis-users:
+    image: fantabulous/redis:cache
   user-api:
     image: fantabulous/user-api:latest
     build:
