@@ -2,4 +2,8 @@
 
 A multi-fandom fanwork archive.
 
-This is the meta-package, see the referenced modules for actual code.
+This repository contains mostly infrastructure. The bulk of the code can be
+found in the two submodules.
+
+* [ReactJS/Redux front end](https://github.com/zorac/fantabulous-react)
+* [.Net Core back end](https://github.com/zorac/fantabulous-dotnet)
