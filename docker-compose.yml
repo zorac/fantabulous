@@ -10,15 +10,16 @@ services:
       dockerfile: Dockerfile.Cache
   redis-users:
     image: fantabulous/redis:cache
-  user-api:
-    image: fantabulous/user-api:latest
+  api-users:
+    image: fantabulous/api:users
     build:
       context: dotnet
-      dockerfile: Dockerfile.User
+      args:
+        app: Api.Users
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-  ui:
-    image: fantabulous/react-ui:latest
+      ASPNETCORE_ENVIRONMENT: Test
+  ui-react:
+    image: fantabulous/react:latest
     build: react
   proxy:
     image: fantabulous/proxy:latest
