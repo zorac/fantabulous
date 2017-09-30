@@ -10,12 +10,12 @@ services:
       dockerfile: Dockerfile.Cache
   redis-users:
     image: fantabulous/redis:cache
-  api-users:
-    image: fantabulous/api:users
+  api:
+    image: fantabulous/api:latest
     build:
       context: dotnet
       args:
-        app: Api.Users
+        app: Api
     environment:
       ASPNETCORE_ENVIRONMENT: Test
   ui-react:

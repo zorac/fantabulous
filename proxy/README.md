@@ -1,5 +1,3 @@
-# Fantabulous
+# Fantabulous – Proxy
 
-A multi-fandom fanwork archive.
-
-This module contains the NGINX proxy configuration.
+NGINX proxy configuration for Fantabulous.

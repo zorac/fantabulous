@@ -1,5 +1,3 @@
-# Fantabulous
+# Fantabulous – MySQL
 
-A multi-fandom fanwork archive.
-
-This module contains MySQL configuration.
+MySQL databas configuration for Fantabulous.

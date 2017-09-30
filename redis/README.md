@@ -1,5 +1,3 @@
-# Fantabulous
+# Fantabulous – Redis
 
-A multi-fandom fanwork archive.
-
-This module contains Redis configuration.
+Redis configuration for Fantabulous.
