@@ -2,18 +2,22 @@
  * Database structure for Fantabulous.
  *
  * This script should only be used to initialise a new database. It will fail
- * safe in that existing tabels and data will not be created, but you should
+ * safe in that existing tables and data will not be changed, but you should
  * instead run the migrations scripts to update an existing database in place.
  *
  * We use the utf8mb4 character set to allow Unicode characters from the
- * supplementary planes to ensure that we can support the foll range of
+ * supplementary planes to ensure that we can support the full range of
  * scripts and, of couse, emoji.
+ *
+ * InnoDB indexes have a mximum prefix length limit of 3072 bytes with DYNAMIC
+ * rows, and 767 with COMPACT rows.
  *
  * This gives us some limits on column legths, as each charcter may be up to
  * four bytes in length:
  *   63 characters is the maximum for a "short" VARCHAR (1-byte length)
- *   16,383 characters is the maximym for a "long" VARCHAR (2-byte length)
- *   191 characters total (plus three spare bytes) per index
+ *   16,383 characters is the maximum for a "long" VARCHAR (2-byte length)
+ *   191 characters total (plus three spare bytes) per index for COMPACT rows
+ *   768 characters total per index for DYNAMIC rows
  *
  * Special cases:
  *   password-related fields are stored in ASCII, for safety
@@ -29,7 +33,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* Set the initial schema version. */
-INSERT IGNORE INTO schema_version SET version = 1;
+INSERT IGNORE INTO schema_version SET version = 3;
 
 /*
  * A user of the archive.
@@ -39,9 +43,9 @@ CREATE TABLE IF NOT EXISTS users (
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(63) NOT NULL,
-    password VARCHAR(254) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
-    salt VARCHAR(254) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
     email VARCHAR(254) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
+    salt CHAR(32) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
+    password CHAR(64) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
     PRIMARY KEY (user_id),
     UNIQUE KEY (name),
     UNIQUE KEY (email)
@@ -78,8 +82,8 @@ CREATE TABLE IF NOT EXISTS tags (
     alias_for INT(10) UNSIGNED NOT NULL DEFAULT 1,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    type ENUM('Root','Warning','Fandom','Entity','Ship','Generic') NOT NULL,
-    name VARCHAR(191) NOT NULL,
+    type ENUM('Root','Warning','Fandom','Character','Ship','Generic') NOT NULL,
+    name VARCHAR(750) NOT NULL,
     PRIMARY KEY (tag_id),
     UNIQUE KEY (alias_for,name),
     KEY (name),
@@ -97,7 +101,7 @@ CREATE TABLE IF NOT EXISTS works (
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     version SMALLINT(5) UNSIGNED NOT NULL DEFAULT 1,
-    name VARCHAR(191) NOT NULL,
+    name VARCHAR(750) NOT NULL,
     PRIMARY KEY (work_id),
     KEY (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -126,4 +130,44 @@ CREATE TABLE IF NOT EXISTS work_tags (
     UNIQUE KEY (tag_id,work_id),
     FOREIGN KEY (work_id) REFERENCES works (work_id),
     FOREIGN KEY (tag_id) REFERENCES tags (tag_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*
+ * A chapter within a fanwork.
+ */
+CREATE TABLE IF NOT EXISTS chapters (
+    chapter_id INT(10) UNSIGNED NOT NULL,
+    work_id INT(10) UNSIGNED NOT NULL,
+    position SMALLINT(5) UNSIGNED NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    name VARCHAR(750) NOT NULL,
+    PRIMARY KEY (chapter_id),
+    UNIQUE KEY (work_id,position),
+    FOREIGN KEY (work_id) REFERENCES works (work_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*
+ * A series of fanworks.
+ */
+CREATE TABLE IF NOT EXISTS series (
+    series_id INT(10) UNSIGNED NOT NULL,
+    created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    name VARCHAR(750) NOT NULL,
+    PRIMARY KEY (series_id),
+    KEY (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*
+ * Maps series to their works.
+ */
+CREATE TABLE IF NOT EXISTS series_works (
+    series_id INT(10) UNSIGNED NOT NULL,
+    work_id INT(10) UNSIGNED NOT NULL,
+    position SMALLINT(5) UNSIGNED NOT NULL,
+    PRIMARY KEY (work_id,series_id),
+    UNIQUE KEY (series_id,position),
+    FOREIGN KEY (series_id) REFERENCES series (series_id),
+    FOREIGN KEY (work_id) REFERENCES works (work_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
