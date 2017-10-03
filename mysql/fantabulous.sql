@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* Set the initial schema version. */
-INSERT IGNORE INTO schema_version SET version = 3;
+INSERT IGNORE INTO schema_version SET version = 4;
 
 /*
  * A user of the archive.
@@ -66,9 +66,9 @@ CREATE TABLE IF NOT EXISTS pseuds (
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(63) NOT NULL,
     PRIMARY KEY (pseud_id),
-    UNIQUE KEY (user_id,name),
+    UNIQUE KEY user_name (user_id,name),
     KEY (name),
-    FOREIGN KEY (user_id) REFERENCES users (user_id)
+    CONSTRAINT pseud_to_user FOREIGN KEY (user_id) REFERENCES users (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* The anonymous pseud. */
@@ -85,9 +85,9 @@ CREATE TABLE IF NOT EXISTS tags (
     type ENUM('Root','Warning','Fandom','Character','Ship','Generic') NOT NULL,
     name VARCHAR(750) NOT NULL,
     PRIMARY KEY (tag_id),
-    UNIQUE KEY (alias_for,name),
+    UNIQUE KEY alias_for_name (alias_for,name),
     KEY (name),
-    FOREIGN KEY (alias_for) REFERENCES tags (tag_id)
+    CONSTRAINT alias_for_tag FOREIGN KEY (alias_for) REFERENCES tags (tag_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* The root tag, needed to allow canonical tags. */
@@ -109,14 +109,14 @@ CREATE TABLE IF NOT EXISTS works (
 /*
  * Maps works to the pseuds who created them.
  */
-CREATE TABLE IF NOT EXISTS work_creators (
+CREATE TABLE IF NOT EXISTS work_pseuds (
     work_id INT(10) UNSIGNED NOT NULL,
     pseud_id INT(10) UNSIGNED NOT NULL,
     position TINYINT(3) UNSIGNED NOT NULL DEFAULT 1,
     PRIMARY KEY (work_id,position),
-    UNIQUE KEY (pseud_id,work_id),
-    FOREIGN KEY (work_id) REFERENCES works (work_id),
-    FOREIGN KEY (pseud_id) REFERENCES pseuds (pseud_id)
+    UNIQUE KEY pseud_work (pseud_id,work_id),
+    CONSTRAINT pseud_to_work FOREIGN KEY (work_id) REFERENCES works (work_id),
+    CONSTRAINT work_to_pseud FOREIGN KEY (pseud_id) REFERENCES pseuds (pseud_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
@@ -127,9 +127,9 @@ CREATE TABLE IF NOT EXISTS work_tags (
     tag_id INT(10) UNSIGNED NOT NULL,
     position SMALLINT(3) UNSIGNED NOT NULL,
     PRIMARY KEY (work_id,position),
-    UNIQUE KEY (tag_id,work_id),
-    FOREIGN KEY (work_id) REFERENCES works (work_id),
-    FOREIGN KEY (tag_id) REFERENCES tags (tag_id)
+    UNIQUE KEY tag_work (tag_id,work_id),
+    CONSTRAINT tags_to_works FOREIGN KEY (work_id) REFERENCES works (work_id),
+    CONSTRAINT works_to_tags FOREIGN KEY (tag_id) REFERENCES tags (tag_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
@@ -143,8 +143,8 @@ CREATE TABLE IF NOT EXISTS chapters (
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(750) NOT NULL,
     PRIMARY KEY (chapter_id),
-    UNIQUE KEY (work_id,position),
-    FOREIGN KEY (work_id) REFERENCES works (work_id)
+    UNIQUE KEY work_position (work_id,position),
+    CONSTRAINT chapter_to_work FOREIGN KEY (work_id) REFERENCES works (work_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS series_works (
     work_id INT(10) UNSIGNED NOT NULL,
     position SMALLINT(5) UNSIGNED NOT NULL,
     PRIMARY KEY (work_id,series_id),
-    UNIQUE KEY (series_id,position),
-    FOREIGN KEY (series_id) REFERENCES series (series_id),
-    FOREIGN KEY (work_id) REFERENCES works (work_id)
+    UNIQUE KEY series_position (series_id,position),
+    CONSTRAINT works_to_series FOREIGN KEY (series_id) REFERENCES series (series_id),
+    CONSTRAINT series_to_works FOREIGN KEY (work_id) REFERENCES works (work_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
