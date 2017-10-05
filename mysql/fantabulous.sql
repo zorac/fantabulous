@@ -33,26 +33,26 @@ CREATE TABLE IF NOT EXISTS schema_version (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* Set the initial schema version. */
-INSERT IGNORE INTO schema_version SET version = 4;
+INSERT IGNORE INTO schema_version SET version = 5;
 
 /*
  * A user of the archive.
  */
 CREATE TABLE IF NOT EXISTS users (
-    user_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(63) NOT NULL,
     email VARCHAR(254) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
     salt CHAR(32) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
     password CHAR(64) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
-    PRIMARY KEY (user_id),
+    PRIMARY KEY (id),
     UNIQUE KEY (name),
     UNIQUE KEY (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* The anonymous user. */
-INSERT IGNORE INTO users SET user_id = 1, name = 'Anonymous', password = '',
+INSERT IGNORE INTO users SET id = 0, name = 'Anonymous', password = '',
     salt = '', email = 'anonymous@example.org';
 
 /*
@@ -60,49 +60,49 @@ INSERT IGNORE INTO users SET user_id = 1, name = 'Anonymous', password = '',
  * activity is recorded against a pseud taher than directly againstthe user.
  */
 CREATE TABLE IF NOT EXISTS pseuds (
-    pseud_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id INT(10) UNSIGNED NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(63) NOT NULL,
-    PRIMARY KEY (pseud_id),
+    PRIMARY KEY (id),
     UNIQUE KEY user_name (user_id,name),
     KEY (name),
-    CONSTRAINT pseud_to_user FOREIGN KEY (user_id) REFERENCES users (user_id)
+    CONSTRAINT pseud_to_user FOREIGN KEY (user_id) REFERENCES users (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* The anonymous pseud. */
-INSERT IGNORE INTO pseuds SET pseud_id = 1, user_id = 1, name = 'Anonymous';
+INSERT IGNORE INTO pseuds SET id = 0, user_id = 0, name = 'Anonymous';
 
 /*
  * A tag. Fandoms, chracters, relationships, etc are all represented as tags.
  */
 CREATE TABLE IF NOT EXISTS tags (
-    tag_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    alias_for INT(10) UNSIGNED NOT NULL DEFAULT 1,
+    id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    alias_for INT(10) UNSIGNED NOT NULL DEFAULT 0,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     type ENUM('Root','Warning','Fandom','Character','Ship','Generic') NOT NULL,
     name VARCHAR(750) NOT NULL,
-    PRIMARY KEY (tag_id),
+    PRIMARY KEY (id),
     UNIQUE KEY alias_for_name (alias_for,name),
     KEY (name),
-    CONSTRAINT alias_for_tag FOREIGN KEY (alias_for) REFERENCES tags (tag_id)
+    CONSTRAINT alias_for_tag FOREIGN KEY (alias_for) REFERENCES tags (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* The root tag, needed to allow canonical tags. */
-INSERT IGNORE INTO tags SET tag_id = 1, type = 'Root', name = '__ROOT_TAG__';
+INSERT IGNORE INTO tags SET id = 0, type = 'Root', name = '__ROOT_TAG__';
 
 /*
  * A Fanwork.
  */
 CREATE TABLE IF NOT EXISTS works (
-    work_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    version SMALLINT(5) UNSIGNED NOT NULL DEFAULT 1,
+    majorly_updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     name VARCHAR(750) NOT NULL,
-    PRIMARY KEY (work_id),
+    PRIMARY KEY (id),
     KEY (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -115,8 +115,8 @@ CREATE TABLE IF NOT EXISTS work_pseuds (
     position TINYINT(3) UNSIGNED NOT NULL DEFAULT 1,
     PRIMARY KEY (work_id,position),
     UNIQUE KEY pseud_work (pseud_id,work_id),
-    CONSTRAINT pseud_to_work FOREIGN KEY (work_id) REFERENCES works (work_id),
-    CONSTRAINT work_to_pseud FOREIGN KEY (pseud_id) REFERENCES pseuds (pseud_id)
+    CONSTRAINT pseud_to_work FOREIGN KEY (work_id) REFERENCES works (id),
+    CONSTRAINT work_to_pseud FOREIGN KEY (pseud_id) REFERENCES pseuds (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
@@ -128,34 +128,34 @@ CREATE TABLE IF NOT EXISTS work_tags (
     position SMALLINT(3) UNSIGNED NOT NULL,
     PRIMARY KEY (work_id,position),
     UNIQUE KEY tag_work (tag_id,work_id),
-    CONSTRAINT tags_to_works FOREIGN KEY (work_id) REFERENCES works (work_id),
-    CONSTRAINT works_to_tags FOREIGN KEY (tag_id) REFERENCES tags (tag_id)
+    CONSTRAINT tags_to_works FOREIGN KEY (work_id) REFERENCES works (id),
+    CONSTRAINT works_to_tags FOREIGN KEY (tag_id) REFERENCES tags (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
  * A chapter within a fanwork.
  */
 CREATE TABLE IF NOT EXISTS chapters (
-    chapter_id INT(10) UNSIGNED NOT NULL,
+    id INT(10) UNSIGNED NOT NULL,
     work_id INT(10) UNSIGNED NOT NULL,
     position SMALLINT(5) UNSIGNED NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(750) NOT NULL,
-    PRIMARY KEY (chapter_id),
+    PRIMARY KEY (id),
     UNIQUE KEY work_position (work_id,position),
-    CONSTRAINT chapter_to_work FOREIGN KEY (work_id) REFERENCES works (work_id)
+    CONSTRAINT chapter_to_work FOREIGN KEY (work_id) REFERENCES works (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*
  * A series of fanworks.
  */
 CREATE TABLE IF NOT EXISTS series (
-    series_id INT(10) UNSIGNED NOT NULL,
+    id INT(10) UNSIGNED NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(750) NOT NULL,
-    PRIMARY KEY (series_id),
+    PRIMARY KEY (id),
     KEY (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -166,8 +166,8 @@ CREATE TABLE IF NOT EXISTS series_works (
     series_id INT(10) UNSIGNED NOT NULL,
     work_id INT(10) UNSIGNED NOT NULL,
     position SMALLINT(5) UNSIGNED NOT NULL,
-    PRIMARY KEY (work_id,series_id),
-    UNIQUE KEY series_position (series_id,position),
-    CONSTRAINT works_to_series FOREIGN KEY (series_id) REFERENCES series (series_id),
-    CONSTRAINT series_to_works FOREIGN KEY (work_id) REFERENCES works (work_id)
+    PRIMARY KEY (series_id,position),
+    UNIQUE KEY work_series (work_id,series_id),
+    CONSTRAINT works_to_series FOREIGN KEY (series_id) REFERENCES series (id),
+    CONSTRAINT series_to_works FOREIGN KEY (work_id) REFERENCES works (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
