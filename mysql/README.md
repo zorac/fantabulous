@@ -1,3 +1,3 @@
-# Fantabulous – MySQL
+# Fantabulous — MySQL
 
 MySQL database configuration for Fantabulous.

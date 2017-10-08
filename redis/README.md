@@ -1,3 +1,3 @@
-# Fantabulous – Redis
+# Fantabulous — Redis
 
 Redis configuration for Fantabulous.

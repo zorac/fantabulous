@@ -26,6 +26,13 @@
  */
 
 /*
+ * This allows us to insert the special values with ID zero, otherwise they get
+ * assigned auto-incremented IDs. This is problematic in particular for the
+ * root tag...
+ */
+ SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
+
+/*
  * This table simply stores the current version of the database schema.
  */
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -33,7 +40,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* Set the initial schema version. */
-INSERT IGNORE INTO schema_version SET version = 5;
+INSERT IGNORE INTO schema_version SET version = 6;
 
 /*
  * A user of the archive.
@@ -52,8 +59,8 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /* The anonymous user. */
-INSERT IGNORE INTO users SET id = 0, name = 'Anonymous', password = '',
-    salt = '', email = 'anonymous@example.org';
+INSERT IGNORE INTO users SET id = 0, name = 'Anonymous',
+    email = 'anonymous@example.org', password = '', salt = '';
 
 /*
  * A pseudonym. All users must have at least one active pseud, and all their
@@ -82,7 +89,7 @@ CREATE TABLE IF NOT EXISTS tags (
     alias_for INT(10) UNSIGNED NOT NULL DEFAULT 0,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    type ENUM('Root','Warning','Fandom','Character','Ship','Generic') NOT NULL,
+    type ENUM('Root','Fandom','Warning','Character','Ship','Generic') NOT NULL,
     name VARCHAR(750) NOT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY alias_for_name (alias_for,name),
@@ -136,7 +143,7 @@ CREATE TABLE IF NOT EXISTS work_tags (
  * A chapter within a fanwork.
  */
 CREATE TABLE IF NOT EXISTS chapters (
-    id INT(10) UNSIGNED NOT NULL,
+    id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     work_id INT(10) UNSIGNED NOT NULL,
     position SMALLINT(5) UNSIGNED NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -151,7 +158,7 @@ CREATE TABLE IF NOT EXISTS chapters (
  * A series of fanworks.
  */
 CREATE TABLE IF NOT EXISTS series (
-    id INT(10) UNSIGNED NOT NULL,
+    id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     name VARCHAR(750) NOT NULL,
