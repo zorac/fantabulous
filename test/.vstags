@@ -25,7 +25,13 @@ TABLE	Fantabulous/Entities/Work.pm	5;"	c
 TABLE	Fantabulous/Entities/WorkPseud.pm	5;"	c
 TABLE	Fantabulous/Entities/WorkTag.pm	5;"	c
 insert	Fantabulous/Entity.pm	25;"	s
-new	Fantabulous/DbPopulator.pm	15;"	s
+load_words	Fantabulous/DbPopulator.pm	58;"	s
+make_character_name	Fantabulous/DbPopulator.pm	118;"	s
+make_fandom_name	Fantabulous/DbPopulator.pm	133;"	s
+make_generic_name	Fantabulous/DbPopulator.pm	167;"	s
+make_title	Fantabulous/DbPopulator.pm	150;"	s
+make_user_name	Fantabulous/DbPopulator.pm	103;"	s
+new	Fantabulous/DbPopulator.pm	44;"	s
 new	Fantabulous/Entities/Chapter.pm	7;"	s
 new	Fantabulous/Entities/Pseud.pm	7;"	s
 new	Fantabulous/Entities/Series.pm	7;"	s
@@ -36,5 +42,5 @@ new	Fantabulous/Entities/Work.pm	7;"	s
 new	Fantabulous/Entities/WorkPseud.pm	7;"	s
 new	Fantabulous/Entities/WorkTag.pm	7;"	s
 new	Fantabulous/Entity.pm	5;"	s
-populate	Fantabulous/DbPopulator.pm	45;"	s
-random	Fantabulous/DbPopulator.pm	23;"	s
+populate	Fantabulous/DbPopulator.pm	182;"	s
+random	Fantabulous/DbPopulator.pm	76;"	s
